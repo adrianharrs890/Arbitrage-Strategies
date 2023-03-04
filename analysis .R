@@ -207,12 +207,12 @@ model_spec_prophet_boost_X <- prophet_boost() %>%
 
 workflow_fit_prophet_boost_Y <- workflow() %>%
   add_model(model_spec_prophet_boost_Y) %>%
-  add_recipe(recipe_spec) %>%
+  add_recipe(recipe_spec_X) %>%
   fit(training(splits_Y))
 
 workflow_fit_prophet_boost_X <- workflow() %>%
   add_model(model_spec_prophet_boost_X) %>%
-  add_recipe(recipe_spec) %>%
+  add_recipe(recipe_spec_Y) %>%
   fit(training(splits_X))
 
 
@@ -224,20 +224,20 @@ model_table_X <- modeltime_table(
   workflow_fit_prophet_boost_X
 ) 
 
-calibration_table_Y <- model_table %>%
+calibration_table_Y <- model_table_Y %>%
   modeltime_calibrate(testing(splits_Y))
 
-calibration_table_X <- model_table %>%
+calibration_table_X <- model_table_X%>%
   modeltime_calibrate(testing(splits_X))
 
-pred_data_Y <- calibration_table_Y  %>%
+pred_data_Y <- calibration_table_Y%>%
   modeltime_refit(time_Y) %>%
   modeltime_forecast(
     h = "2 months",
     actual_data = time_Y
   ) %>%
   as.data.frame() %>%
-  filter(.index > max(time$date)) %>%
+  filter(.index > max(time_Y$date)) %>%
   rename(date =  .index, 
          Price = .value) %>%
   mutate(Symbol = Y ) %>%
@@ -250,7 +250,7 @@ pred_data_X <- calibration_table_X  %>%
     actual_data = time_X
   ) %>%
   as.data.frame() %>%
-  filter(.index > max(time$date)) %>%
+  filter(.index > max(time_X$date)) %>%
   rename(date =  .index, 
          Price = .value) %>%
   mutate(Symbol = X ) %>%
@@ -348,7 +348,7 @@ data %>%
   geom_line() 
 
 
-forcasted_data
+
 
 
 
